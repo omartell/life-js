@@ -5,14 +5,26 @@ var Life = (function() {
   }
 
   Life.prototype.initializeLivingCells = function() {
-    // Find living cells
+    this.living = this.findLivingCells();
     // Find the neighbors for those living cells
     // Determine if they are alive or dead 
     // Determine if the cell is alive or dead
   };
 
+  Life.prototype.findLivingCells = function() {
+    var living = []
+    _.each(this.seed, function(row, row_index){
+      _.each(row, function(cell, col_index){
+        if(cell === 1){
+          return living.push({ x: row_index, y: col_index});
+        }
+      });
+    });
+    return living;
+  };
+
   Life.prototype.nextGeneration = function() {
-    return this.cells;
+    return this.seed;
   };
 
   return Life;
@@ -64,6 +76,22 @@ var NeighborFinder = (function(){
   return NeighborFinder;
 })();
 
+describe("Life", function() {
+  var _ = 0;
+  it("Finds the living cells from the initial seed", function() {
+    var seed = [
+      [_,_,_,_],
+      [_,_,_,_],
+      [_,1,_,_],
+      [_,_,_,_],
+      [_,_,_,_]
+    ];
+
+    var life = new Life(seed);
+    expect(life.findLivingCells()).toEqual([{ x: 2, y: 1}]);
+  });
+})
+
 describe("NeighborFinder", function() {
   var _ = 0;
   it("Knows the neighbors of a cell", function() {
@@ -100,7 +128,7 @@ describe("Conway's game of life", function() {
     ];
 
     var life = new Life(seed);
-    expect(life.nextGeneration()).toEqual(empty);
+    expect(life.nextGeneration()).toEqual(seed);
   });
 
   it("A cell with no neighbors dies on the next generation", function() {
