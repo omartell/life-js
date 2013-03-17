@@ -262,26 +262,4 @@ describe("Conway's game of life", function() {
     var life = new Life(seed);
     expect(life.nextGeneration()).toEqual(nextGeneration);
   });
-
-
-  xit("Given the following seed", function() {
-    var seed = [
-      [_,_,1,_],
-      [_,1,_,_],
-      [_,1,_,_],
-      [_,_,_,_],
-      [_,_,_,_]
-    ];
-
-    var nextGeneration = [
-      [_,_,_,_],
-      [_,1,1,_],
-      [_,_,_,_],
-      [_,_,_,_],
-      [_,_,_,_]
-    ];
-
-    var life = new Life(seed);
-    expect(life.nextGeneration()).toEqual(nextGeneration);
-  });
 });
