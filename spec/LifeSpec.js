@@ -16,7 +16,7 @@ var Life = (function() {
     _.each(this.seed, function(row, row_index){
       _.each(row, function(cell, col_index){
         if(cell === 1){
-          return living.push({ x: row_index, y: col_index});
+          return living.push({ y: row_index, x: col_index});
         }
       });
     });
@@ -36,11 +36,11 @@ var NeighborFinder = (function(){
   }
 
   NeighborFinder.prototype.neighbors = function(cellPosition) {
-    return _.map(findPositions(cellPosition), (function(p){
-      var row    = this.environment[p.x],
-          column = [p.y];
+    return _.map(findPositions(cellPosition), function(p){
+      var row    = this.environment[p.y],
+          column = [p.x];
       return row && row[column];
-    }), this);
+    }, this);
   };
 
   function findPositions(cellPosition){
@@ -88,7 +88,7 @@ describe("Life", function() {
     ];
 
     var life = new Life(seed);
-    expect(life.findLivingCells()).toEqual([{ x: 2, y: 1}]);
+    expect(life.findLivingCells()).toEqual([{ x: 1, y: 2}]);
   });
 })
 
@@ -104,7 +104,7 @@ describe("NeighborFinder", function() {
     ];
 
     var neighborFinder = new NeighborFinder(environment);
-    expect(neighborFinder.neighbors({x: 2, y: 1})).toEqual([_,_,_,_,_,_,_,_]);
+    expect(neighborFinder.neighbors({x: 1, y: 2})).toEqual([_,_,_,_,_,_,_,_]);
   });
 })
 
