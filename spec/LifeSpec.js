@@ -6,6 +6,10 @@ var Life = (function() {
 
   Life.prototype.initializeLivingCells = function() {
     this.living = this.findLivingCells();
+    this.neighborFinder = new NeighborFinder(this.seed);
+    this.nextLiving = _.map(this.living, function(cellPosition){
+      return [cellPosition, this.neighborFinder.livingNeighbors(cellPosition)];
+    }, this);
     // Find the neighbors for those living cells
     // Determine if they are alive or dead 
     // Determine if the cell is alive or dead
@@ -35,12 +39,16 @@ var NeighborFinder = (function(){
     this.environment = environment;
   }
 
-  NeighborFinder.prototype.neighbors = function(cellPosition) {
-    return _.map(findPositions(cellPosition), function(p){
-      var row    = this.environment[p.y],
-          column = [p.x];
-      return row && row[column];
-    }, this);
+  NeighborFinder.prototype.livingNeighbors = function(cellPosition) {
+    return _.chain(findPositions(cellPosition))
+            .map(function(p){
+              var row  = this.environment[p.y];
+              if(row && row[p.x] == 1){
+                return p;
+              }
+            }, this)
+            .compact()
+            .value();
   };
 
   function findPositions(cellPosition){
@@ -94,17 +102,17 @@ describe("Life", function() {
 
 describe("NeighborFinder", function() {
   var _ = 0;
-  it("Knows the neighbors of a cell", function() {
+  it("Finds the living neighbors of a cell", function() {
     var environment = [
       [_,_,_,_],
-      [_,_,_,_],
+      [_,1,_,_],
       [_,1,_,_],
       [_,_,_,_],
       [_,_,_,_]
     ];
 
     var neighborFinder = new NeighborFinder(environment);
-    expect(neighborFinder.neighbors({x: 1, y: 2})).toEqual([_,_,_,_,_,_,_,_]);
+    expect(neighborFinder.livingNeighbors({x: 1, y: 2})).toEqual([{x: 1,y: 1}]);
   });
 })
 
