@@ -1,3 +1,14 @@
+var CellPosition = (function(){
+  function CellPosition(x,y){
+    this.x = x;
+    this.y = y;
+  }
+  CellPosition.prototype.toString = function() {
+    return this.x.toString() +","+ this.y.toString();
+  };
+  return CellPosition;
+})();
+
 var Life = (function() {
   function Life(seed) {
     this.seed = seed;
@@ -13,19 +24,22 @@ var Life = (function() {
   };
 
   Life.prototype.findNewCells = function(living, neighborFinder) {
-    var newLiving = _.chain(living)
+    var commonNeighbors = _.chain(living)
       .map(function(cellPosition){
         return neighborFinder.neighbors(cellPosition);
       })
       .flatten()
       .countBy(function(cellPosition){
-        return [cellPosition.x, cellPosition.y];
-      })
+        return cellPosition.toString();
+      }).value();
+
+    var newLiving = _.chain(commonNeighbors)
       .map(function(value, key, list){
         if(value === 3){
-          return { x: +key[0], y: +key[2]}; 
+          return new CellPosition(+key[0], +key[2]);
         }
       }).compact().value();
+
     return newLiving;
   };
 
@@ -46,7 +60,7 @@ var Life = (function() {
     _.each(this.seed, function(row, row_index){
       _.each(row, function(cell, col_index){
         if(cell === 1){
-          return living.push({ y: row_index, x: col_index});
+          return living.push(new CellPosition(col_index,row_index));
         }
       });
     });
@@ -114,19 +128,19 @@ var NeighborFinder = (function(){
   };
 
   function plusX(p){
-    return { x: p.x + 1, y: p.y };
+    return  new CellPosition(p.x + 1, p.y);
   }
 
   function minusX(p){
-    return { x: p.x - 1, y: p.y };
+    return  new CellPosition(p.x - 1, p.y);
   }
 
   function minusY(p){
-    return { x: p.x, y: p.y - 1 };
+    return  new CellPosition(p.x, p.y - 1);
   }
 
   function plusY(p){
-    return { x: p.x, y: p.y + 1 };
+    return  new CellPosition(p.x, p.y + 1);
   }
 
   return NeighborFinder;
