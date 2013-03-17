@@ -7,18 +7,21 @@ var Life = (function() {
   Life.prototype.initializeLivingCells = function() {
     var living = this.findLivingCells();
     var neighborFinder = new NeighborFinder(this.seed);
-    this.nextLiving = _.chain(living).map(function(cellPosition){
-      if(neighborFinder.livingNeighbors(cellPosition).length >= 2){
-        return cellPosition;
-      }
-    }, this).compact().value();
+    this.nextLiving = _.chain(living)
+      .map(function(cellPosition){
+        if(neighborFinder.livingNeighbors(cellPosition).length >= 2){
+          return cellPosition;
+        }
+      }, this)
+      .compact()
+      .value();
     // Find the neighbors for those living cells
     // Determine if they are alive or dead 
     // Determine if the cell is alive or dead
   };
 
   Life.prototype.findLivingCells = function() {
-    var living = []
+    var living = [];
     _.each(this.seed, function(row, row_index){
       _.each(row, function(cell, col_index){
         if(cell === 1){
@@ -30,13 +33,20 @@ var Life = (function() {
   };
 
   Life.prototype.nextGeneration = function() {
-    var next = [];
+    var grid = emptyGrid(this.seed.length - 1);
     _.each(this.nextLiving, function(cellPosition){
-      next[cellPosition.y] = next[cellPosition.y] || [];
-      next[cellPosition.y][cellPosition.x] = 1;
+      grid[cellPosition.y][cellPosition.x] = 1;
     });
-    return next;
+    return grid;
   };
+
+  function emptyGrid(size){
+    var grid = new Array(size);
+    _.times(size+1, function(n){
+      grid[n] = new Array(size); 
+    });
+    return grid;
+  }
 
   return Life;
 })();
@@ -128,7 +138,13 @@ describe("NeighborFinder", function() {
 
 describe("Conway's game of life", function() {
   var _ = undefined;
-  var empty = [];
+  var empty = [
+    [_,_,_,_],
+    [_,_,_,_],
+    [_,_,_,_],
+    [_,_,_,_],
+    [_,_,_,_]
+  ];
 
   it("Given an empty seed, then there's no next generation", function() {
     var seed = [
@@ -156,18 +172,18 @@ describe("Conway's game of life", function() {
     expect(life.nextGeneration()).toEqual(empty);
   });
 
-  xit("Given the following seed", function() {
+  it("A cell with two or three neighbors lives onto the next generation", function() {
     var seed = [
-      [ , ,1, ],
-      [ ,1, , ],
-      [ ,1, , ],
+      [_,1,_,_],
+      [_,1,_,_],
+      [_,1,_,_],
       [_,_,_,_],
       [_,_,_,_]
     ];
 
     var nextGeneration = [
       [_,_,_,_],
-      [ ,1,1,_],
+      [_,1,_,_],
       [_,_,_,_],
       [_,_,_,_],
       [_,_,_,_]
