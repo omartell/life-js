@@ -77,11 +77,15 @@ var NeighborFinder = (function(){
       return fn(cellPosition);
     };
 
-    return _.map([plusX, minusX,  plusY, minusY,
+    return _.map([
+        function(p){ return minusX(minusY(p)); },
+        minusY,
         function(p){ return plusX(minusY(p)); },
-        function(p){ return plusX(plusY(p)); },
-        function(p){ return plusY(minusX(p)); },
-        function(p){ return plusY(plusX(p)); }
+        minusX,
+        plusX,
+        function(p){ return minusX(plusY(p)); },
+        plusY,
+        function(p){ return plusX(plusY(p)); }
       ],
       resolvePosition);
   };
@@ -198,7 +202,7 @@ describe("Conway's game of life", function() {
     var seed = [
       [_,1,_,_],
       [_,1,_,_],
-      [_,1,1,_],
+      [1,1,1,_],
       [_,_,_,_],
       [_,_,_,_]
     ];
@@ -206,7 +210,7 @@ describe("Conway's game of life", function() {
     var nextGeneration = [
       [_,_,_,_],
       [_,_,_,_],
-      [_,1,1,_],
+      [1,1,1,_],
       [_,_,_,_],
       [_,_,_,_]
     ];
