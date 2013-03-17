@@ -127,13 +127,13 @@ describe("NeighborFinder", function() {
     var environment = [
       [_,_,_,_],
       [_,1,_,_],
-      [_,1,_,_],
+      [_,1,1,_],
       [_,_,_,_],
       [_,_,_,_]
     ];
 
     var neighborFinder = new NeighborFinder(environment);
-    expect(neighborFinder.livingNeighbors({x: 1, y: 2})).toEqual([{x: 1,y: 1}]);
+    expect(neighborFinder.livingNeighbors({x: 2, y: 2})).toEqual([{x: 1,y: 1}, {x: 1,y: 2}]);
   });
 })
 
