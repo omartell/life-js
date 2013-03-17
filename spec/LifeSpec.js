@@ -9,7 +9,8 @@ var Life = (function() {
     var neighborFinder = new NeighborFinder(this.seed);
     this.nextLiving = _.chain(living)
       .map(function(cellPosition){
-        if(neighborFinder.livingNeighbors(cellPosition).length >= 2){
+        var livingNumber = neighborFinder.livingNeighbors(cellPosition).length;
+        if(livingNumber === 2 || livingNumber === 3){
           return cellPosition;
         }
       }, this)
@@ -185,6 +186,27 @@ describe("Conway's game of life", function() {
       [_,_,_,_],
       [_,1,_,_],
       [_,_,_,_],
+      [_,_,_,_],
+      [_,_,_,_]
+    ];
+
+    var life = new Life(seed);
+    expect(life.nextGeneration()).toEqual(nextGeneration);
+  });
+
+  it("A cell with more than three neighbors dies on the next generation", function() {
+    var seed = [
+      [_,1,_,_],
+      [_,1,_,_],
+      [_,1,1,_],
+      [_,_,_,_],
+      [_,_,_,_]
+    ];
+
+    var nextGeneration = [
+      [_,_,_,_],
+      [_,_,_,_],
+      [_,1,1,_],
       [_,_,_,_],
       [_,_,_,_]
     ];
