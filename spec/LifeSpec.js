@@ -5,20 +5,40 @@ var Life = (function() {
   }
 
   Life.prototype.initializeLivingCells = function() {
-    var living = this.findLivingCells();
+    var livingCells = this.findLivingCells();
     var neighborFinder = new NeighborFinder(this.seed);
-    this.nextLiving = _.chain(living)
+    this.nextLiving = this
+      .findSurvivors(livingCells, neighborFinder)
+      .concat(this.findNewCells(livingCells, neighborFinder));
+  };
+
+  Life.prototype.findNewCells = function(living, neighborFinder) {
+    var newLiving = _.chain(living)
+      .map(function(cellPosition){
+        return neighborFinder.neighbors(cellPosition);
+      })
+      .flatten()
+      .countBy(function(cellPosition){
+        return [cellPosition.x, cellPosition.y];
+      })
+      .map(function(value, key, list){
+        if(value === 3){
+          return { x: +key[0], y: +key[2]}; 
+        }
+      }).compact().value();
+    return newLiving;
+  };
+
+  Life.prototype.findSurvivors = function(living, neighborFinder) {
+    var survivors = _.chain(living)
       .map(function(cellPosition){
         var livingNumber = neighborFinder.livingNeighbors(cellPosition).length;
         if(livingNumber === 2 || livingNumber === 3){
           return cellPosition;
         }
-      }, this)
-      .compact()
-      .value();
-    // Find the neighbors for those living cells
-    // Determine if they are alive or dead 
-    // Determine if the cell is alive or dead
+      }, this).compact().value();
+
+    return survivors;
   };
 
   Life.prototype.findLivingCells = function() {
@@ -43,7 +63,7 @@ var Life = (function() {
 
   function emptyGrid(size){
     var grid = new Array(size);
-    _.times(size+1, function(n){
+    _.times(size + 1, function(n){
       grid[n] = new Array(size); 
     });
     return grid;
@@ -58,18 +78,21 @@ var NeighborFinder = (function(){
   }
 
   NeighborFinder.prototype.neighbors = function(cellPosition){
-    return _.chain(findPositions(cellPosition))
-            .map(function(p){
-              var row  = this.environment[p.y];
-              if(row && row[p.x] == 1){
-                return p;
-              }
-            }, this)
-            .value();
+    return _.map(findPositions(cellPosition), function(p){ 
+              return p; 
+            });
   }
 
   NeighborFinder.prototype.livingNeighbors = function(cellPosition) {
-    return _.compact(this.neighbors(cellPosition));
+    return _.chain(findPositions(cellPosition))
+      .map(function(p){
+        var row  = this.environment[p.y];
+        if(row && row[p.x] == 1){
+          return p;
+        }
+      }, this)
+      .compact()
+      .value();
   };
 
   function findPositions(cellPosition){
@@ -188,7 +211,7 @@ describe("Conway's game of life", function() {
 
     var nextGeneration = [
       [_,_,_,_],
-      [_,1,_,_],
+      [1,1,1,_],
       [_,_,_,_],
       [_,_,_,_],
       [_,_,_,_]
@@ -211,6 +234,27 @@ describe("Conway's game of life", function() {
       [_,_,_,_],
       [_,_,_,_],
       [1,1,1,_],
+      [_,1,_,_],
+      [_,_,_,_]
+    ];
+
+    var life = new Life(seed);
+    expect(life.nextGeneration()).toEqual(nextGeneration);
+  });
+
+  it("A dead cell with three neighbors lives on the next generation", function() {
+    var seed = [
+      [_,_,_,_],
+      [_,_,1,_],
+      [_,1,1,_],
+      [_,_,_,_],
+      [_,_,_,_]
+    ];
+
+    var nextGeneration = [
+      [_,_,_,_],
+      [_,1,1,_],
+      [_,1,1,_],
       [_,_,_,_],
       [_,_,_,_]
     ];
