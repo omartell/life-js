@@ -17,36 +17,25 @@ var Life = (function() {
     this.livingCells = this.findLivingCells();;
   }
 
-  Life.prototype.findNewCells = function(neighborFinder) {
-    var commonNeighbors = _.chain(this.livingCells)
-      .map(function(cellPosition){
-        return neighborFinder.neighbors(cellPosition);
-      })
-      .flatten()
-      .countBy(function(cellPosition){
-        return cellPosition.toString();
-      }).value();
+  Life.prototype.findNewCells = function(neighborsPerCell) {
+    var livingKeys = _.map(this.livingCells, function(){ return this.toString(); }, this),
+        dropLiving = _.omit(neighborsPerCell, livingKeys);
 
-    var newLiving = _.chain(commonNeighbors)
-      .map(function(numberOfNeighbors, cellPosition, _){
+    var newLiving = _.chain(dropLiving)
+      .map(function(numberOfNeighbors, cellPositionStr){
         if(numberOfNeighbors === 3){
-          return new CellPosition(+cellPosition[0], +cellPosition[2]);
+          return new CellPosition(+cellPositionStr[0], +cellPositionStr[2]);
         }
       }).compact().value();
 
     return newLiving;
   };
 
-  Life.prototype.findSurvivors = function(neighborFinder) {
-    var survivors = _.chain(this.livingCells)
-      .map(function(cellPosition){
-        var livingNumber = neighborFinder.livingNeighbors(cellPosition).length;
-        if(livingNumber === 2 || livingNumber === 3){
-          return cellPosition;
-        }
-      }, this).compact().value();
-
-    return survivors;
+  Life.prototype.findSurvivors = function(neighborsPerCell) {
+    return _.chain(this.livingCells).filter(function(cellPosition){
+      var neighbors = neighborsPerCell[cellPosition.toString()];
+      return  neighbors === 2 || neighbors === 3;
+    }).value();
   };
 
   Life.prototype.findLivingCells = function() {
@@ -63,9 +52,12 @@ var Life = (function() {
 
   Life.prototype.nextGeneration = function() {
     var neighborFinder = new NeighborFinder(this.seed),
-        survivors = this.findSurvivors(neighborFinder),
-        newLife   = this.findNewCells(neighborFinder);
+        neighborsPerCell = neighborFinder.neighborsPerCellPosition(this.livingCells),
+        survivors = this.findSurvivors(neighborsPerCell),
+        newLife   = this.findNewCells(neighborsPerCell);
+
     this.livingCells = survivors.concat(newLife);
+
     return this.livingCells;
   };
 
@@ -93,23 +85,21 @@ var NeighborFinder = (function(){
     this.environment = environment;
   }
 
-  NeighborFinder.prototype.neighbors = function(cellPosition){
-    return _.map(findPositions(cellPosition), function(p){
-              return p;
-            });
+  NeighborFinder.prototype.neighborsFor = function(cellPosition){
+    return _.map(findPositions(cellPosition), function(p){ return p; });
   }
 
-  NeighborFinder.prototype.livingNeighbors = function(cellPosition) {
-    return _.chain(findPositions(cellPosition))
-      .map(function(p){
-        var row  = this.environment[p.y];
-        if(row && row[p.x] == 1){
-          return p;
-        }
-      }, this)
-      .compact()
-      .value();
-  };
+  NeighborFinder.prototype.neighborsPerCellPosition = function(cellsPositions){
+    var neighborsByPosition =  _.chain(cellsPositions)
+      .map(function(cellPosition){
+        return this.neighborsFor(cellPosition);
+      }, this).flatten()
+      .countBy(function(cellPosition){
+        return cellPosition.toString();
+      }).value();
+
+    return neighborsByPosition;
+  }
 
   function findPositions(cellPosition){
     function resolvePosition(fn){
@@ -161,22 +151,6 @@ describe("Life", function() {
 
     var life = new Life(seed);
     expect(life.findLivingCells()).toEqual([{ x: 1, y: 2}]);
-  });
-})
-
-describe("NeighborFinder", function() {
-  var _ = undefined;
-  it("Finds the living neighbors of a cell", function() {
-    var environment = [
-      [_,_,_,_],
-      [_,1,_,_],
-      [_,1,1,_],
-      [_,_,_,_],
-      [_,_,_,_]
-    ];
-
-    var neighborFinder = new NeighborFinder(environment);
-    expect(neighborFinder.livingNeighbors({x: 2, y: 2})).toEqual([{x: 1,y: 1}, {x: 1,y: 2}]);
   });
 })
 
