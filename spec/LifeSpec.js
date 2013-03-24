@@ -10,6 +10,8 @@ var CellPosition = (function(){
 })();
 
 var Life = (function() {
+  var ALIVE = 1;
+
   function Life(seed) {
     this.seed = seed;
     this.initializeLivingCells();
@@ -34,9 +36,9 @@ var Life = (function() {
       }).value();
 
     var newLiving = _.chain(commonNeighbors)
-      .map(function(value, key, list){
-        if(value === 3){
-          return new CellPosition(+key[0], +key[2]);
+      .map(function(numberOfNeighbors, cellPosition, _){
+        if(numberOfNeighbors === 3){
+          return new CellPosition(+cellPosition[0], +cellPosition[2]);
         }
       }).compact().value();
 
@@ -59,7 +61,7 @@ var Life = (function() {
     var living = [];
     _.each(this.seed, function(row, row_index){
       _.each(row, function(cell, col_index){
-        if(cell === 1){
+        if(cell === ALIVE){
           return living.push(new CellPosition(col_index,row_index));
         }
       });
@@ -70,7 +72,7 @@ var Life = (function() {
   Life.prototype.nextGeneration = function() {
     var grid = emptyGrid(this.seed.length - 1);
     _.each(this.nextLiving, function(cellPosition){
-      grid[cellPosition.y][cellPosition.x] = 1;
+      grid[cellPosition.y][cellPosition.x] = ALIVE;
     });
     return grid;
   };
@@ -78,7 +80,7 @@ var Life = (function() {
   function emptyGrid(size){
     var grid = new Array(size);
     _.times(size + 1, function(n){
-      grid[n] = new Array(size); 
+      grid[n] = new Array(size);
     });
     return grid;
   }
@@ -92,8 +94,8 @@ var NeighborFinder = (function(){
   }
 
   NeighborFinder.prototype.neighbors = function(cellPosition){
-    return _.map(findPositions(cellPosition), function(p){ 
-              return p; 
+    return _.map(findPositions(cellPosition), function(p){
+              return p;
             });
   }
 
@@ -125,7 +127,7 @@ var NeighborFinder = (function(){
         function(p){ return plusX(plusY(p)); }
       ],
       resolvePosition);
-  };
+  }
 
   function plusX(p){
     return  new CellPosition(p.x + 1, p.y);
