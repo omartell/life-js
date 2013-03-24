@@ -14,19 +14,11 @@ var Life = (function() {
 
   function Life(seed) {
     this.seed = seed;
-    this.initializeLivingCells();
+    this.livingCells = this.findLivingCells();;
   }
 
-  Life.prototype.initializeLivingCells = function() {
-    var livingCells = this.findLivingCells();
-    var neighborFinder = new NeighborFinder(this.seed);
-    this.nextLiving = this
-      .findSurvivors(livingCells, neighborFinder)
-      .concat(this.findNewCells(livingCells, neighborFinder));
-  };
-
-  Life.prototype.findNewCells = function(living, neighborFinder) {
-    var commonNeighbors = _.chain(living)
+  Life.prototype.findNewCells = function(neighborFinder) {
+    var commonNeighbors = _.chain(this.livingCells)
       .map(function(cellPosition){
         return neighborFinder.neighbors(cellPosition);
       })
@@ -45,8 +37,8 @@ var Life = (function() {
     return newLiving;
   };
 
-  Life.prototype.findSurvivors = function(living, neighborFinder) {
-    var survivors = _.chain(living)
+  Life.prototype.findSurvivors = function(neighborFinder) {
+    var survivors = _.chain(this.livingCells)
       .map(function(cellPosition){
         var livingNumber = neighborFinder.livingNeighbors(cellPosition).length;
         if(livingNumber === 2 || livingNumber === 3){
@@ -70,12 +62,20 @@ var Life = (function() {
   };
 
   Life.prototype.nextGeneration = function() {
+    var neighborFinder = new NeighborFinder(this.seed),
+        survivors = this.findSurvivors(neighborFinder),
+        newLife   = this.findNewCells(neighborFinder);
+    this.livingCells = survivors.concat(newLife);
+    return this.livingCells;
+  };
+
+  Life.prototype.generationAsGrid = function(){
     var grid = emptyGrid(this.seed.length - 1);
-    _.each(this.nextLiving, function(cellPosition){
+    _.each(this.livingCells, function(cellPosition){
       grid[cellPosition.y][cellPosition.x] = ALIVE;
     });
     return grid;
-  };
+  }
 
   function emptyGrid(size){
     var grid = new Array(size);
@@ -200,7 +200,8 @@ describe("Conway's game of life", function() {
     ];
 
     var life = new Life(seed);
-    expect(life.nextGeneration()).toEqual(empty);
+    life.nextGeneration()
+    expect(life.generationAsGrid()).toEqual(empty);
   });
 
   it("A cell with no neighbors dies on the next generation", function() {
@@ -213,7 +214,8 @@ describe("Conway's game of life", function() {
     ];
 
     var life = new Life(seed);
-    expect(life.nextGeneration()).toEqual(empty);
+    life.nextGeneration()
+    expect(life.generationAsGrid()).toEqual(empty);
   });
 
   it("A cell with two or three neighbors lives onto the next generation", function() {
@@ -234,7 +236,8 @@ describe("Conway's game of life", function() {
     ];
 
     var life = new Life(seed);
-    expect(life.nextGeneration()).toEqual(nextGeneration);
+    life.nextGeneration()
+    expect(life.generationAsGrid()).toEqual(nextGeneration);
   });
 
   it("A cell with more than three neighbors dies on the next generation", function() {
@@ -255,7 +258,8 @@ describe("Conway's game of life", function() {
     ];
 
     var life = new Life(seed);
-    expect(life.nextGeneration()).toEqual(nextGeneration);
+    life.nextGeneration()
+    expect(life.generationAsGrid()).toEqual(nextGeneration);
   });
 
   it("A dead cell with three neighbors lives on the next generation", function() {
@@ -276,6 +280,7 @@ describe("Conway's game of life", function() {
     ];
 
     var life = new Life(seed);
-    expect(life.nextGeneration()).toEqual(nextGeneration);
+    life.nextGeneration()
+    expect(life.generationAsGrid()).toEqual(nextGeneration);
   });
 });
