@@ -3,13 +3,13 @@ var CellPosition = (function(){
     this.x = x;
     this.y = y;
   }
-  CellPosition.prototype.toString = function() {
+  CellPosition.prototype.toString = function(){
     return this.x.toString() +","+ this.y.toString();
   };
   return CellPosition;
 })();
 
-var Life = (function() {
+var Life = (function(){
   var ALIVE = 1;
 
   function Life(seed) {
@@ -17,7 +17,7 @@ var Life = (function() {
     this.livingCells = this.findLivingCells();;
   }
 
-  Life.prototype.findNewCells = function(neighborsPerCell) {
+  Life.prototype.findNewCells = function(neighborsPerCell){
     var newLiving = _.chain(neighborsPerCell)
       .map(function(numberOfNeighbors, cellPositionStr){
         if(numberOfNeighbors === 3){
@@ -27,14 +27,14 @@ var Life = (function() {
     return newLiving;
   };
 
-  Life.prototype.findSurvivors = function(neighborsPerCell) {
+  Life.prototype.findSurvivors = function(neighborsPerCell){
     return _.chain(this.livingCells).filter(function(cellPosition){
       var neighbors = neighborsPerCell[cellPosition.toString()];
       return  neighbors === 2 || neighbors === 3;
     }).value();
   };
 
-  Life.prototype.findLivingCells = function() {
+  Life.prototype.findLivingCells = function(){
     var living = [];
     _.each(this.seed, function(row, row_index){
       _.each(row, function(cell, col_index){
@@ -46,7 +46,7 @@ var Life = (function() {
     return living;
   };
 
-  Life.prototype.nextGeneration = function() {
+  Life.prototype.nextGeneration = function(){
     var neighborsPerCell = new NeighborFinder().neighborsPerCellPosition(this.livingCells);
     var survivors = this.findSurvivors(neighborsPerCell);
     var allCells = survivors.concat(this.findNewCells(neighborsPerCell));
@@ -55,6 +55,11 @@ var Life = (function() {
 
     return this.livingCells;
   };
+
+  Life.prototype.advanceGenerations = function(numberOfGenerations){
+    _.times(numberOfGenerations, this.nextGeneration, this);
+    return this.livingCells;
+  }
 
   Life.prototype.generationAsGrid = function(){
     var row_size = this.seed.length;
@@ -319,6 +324,29 @@ describe("Conway's game of life", function() {
     life.nextGeneration();
     life.nextGeneration();
     life.nextGeneration();
+
+    expect(life.generationAsGrid()).toEqual(generation5);
+  });
+
+  it("Is possible to travel in time and see a future generation", function(){
+    var seed = [
+      [_,1,_,_,_,_,_,_],
+      [_,1,_,_,_,_,1,_],
+      [_,1,1,_,_,_,1,_],
+      [_,1,_,_,_,1,1,_],
+      [_,_,_,_,_,_,_,_]
+    ];
+
+    var generation5 = [
+      [_,_,_,_,_,_,_,_],
+      [_,_,_,_,_,_,1,_],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,_,1,_]
+    ];
+
+    var life = new Life(seed);
+    life.advanceGenerations(5);
 
     expect(life.generationAsGrid()).toEqual(generation5);
   });
