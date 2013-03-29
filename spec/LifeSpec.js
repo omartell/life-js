@@ -137,7 +137,7 @@ var NeighborFinder = (function(){
 
 describe("Life", function() {
   var _ = undefined;
-  it("Finds the living cells from the initial seed", function() {
+  it("Finds the living cells from the initial seed", function(){
     var seed = [
       [_,_,_,_],
       [_,_,_,_],
@@ -178,7 +178,7 @@ describe("Conway's game of life", function() {
     [_,_,_,_]
   ];
 
-  it("Given an empty seed, then there's no next generation", function() {
+  it("Given an empty seed, then there's no next generation", function(){
     var seed = [
       [_,_,_,_],
       [_,_,_,_],
@@ -192,7 +192,7 @@ describe("Conway's game of life", function() {
     expect(life.generationAsGrid()).toEqual(empty);
   });
 
-  it("A cell with no neighbors dies on the next generation", function() {
+  it("A cell with no neighbors dies on the next generation", function(){
     var seed = [
       [_,_,_,_],
       [_,_,_,_],
@@ -206,7 +206,7 @@ describe("Conway's game of life", function() {
     expect(life.generationAsGrid()).toEqual(empty);
   });
 
-  it("A cell with two or three neighbors lives onto the next generation", function() {
+  it("A cell with two or three neighbors lives onto the next generation", function(){
     var seed = [
       [_,1,_,_],
       [_,1,_,_],
@@ -228,7 +228,7 @@ describe("Conway's game of life", function() {
     expect(life.generationAsGrid()).toEqual(nextGeneration);
   });
 
-  it("A cell with more than three neighbors dies on the next generation", function() {
+  it("A cell with more than three neighbors dies on the next generation", function(){
     var seed = [
       [_,1,_,_],
       [_,1,_,_],
@@ -250,7 +250,7 @@ describe("Conway's game of life", function() {
     expect(life.generationAsGrid()).toEqual(nextGeneration);
   });
 
-  it("A dead cell with three neighbors lives on the next generation", function() {
+  it("A dead cell with three neighbors lives on the next generation", function(){
     var seed = [
       [_,_,_,_],
       [_,_,1,_],
@@ -270,5 +270,56 @@ describe("Conway's game of life", function() {
     var life = new Life(seed);
     life.nextGeneration()
     expect(life.generationAsGrid()).toEqual(nextGeneration);
+  });
+
+  it("Simulates real life, generations evolve from previous generations", function(){
+    var seed = [
+      [_,1,_,_,_,_,_,_],
+      [_,1,_,_,_,_,1,_],
+      [_,1,1,_,_,_,1,_],
+      [_,1,_,_,_,1,1,_],
+      [_,_,_,_,_,_,_,_]
+    ];
+
+    var generation2 = [
+      [_,_,_,_,_,_,_,_],
+      [1,1,_,_,_,_,_,_],
+      [1,1,1,_,_,_,1,1],
+      [_,1,1,_,_,1,1,_],
+      [_,_,_,_,_,_,_,_]
+    ];
+
+    var generation3 = [
+      [_,_,_,_,_,_,_,_],
+      [1,_,1,_,_,_,_,_],
+      [_,_,_,_,_,1,1,1],
+      [1,_,1,_,_,1,1,1],
+      [_,_,_,_,_,_,_,_]
+    ];
+
+    var generation4 = [
+      [_,_,_,_,_,_,_,_],
+      [_,_,_,_,_,_,1,_],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,_,1,_]
+    ];
+
+    var generation5 = [
+      [_,_,_,_,_,_,_,_],
+      [_,_,_,_,_,_,1,_],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,_,1,_]
+    ];
+
+    var life = new Life(seed);
+    life.nextGeneration();
+    life.nextGeneration();
+    life.nextGeneration();
+    life.nextGeneration();
+    life.nextGeneration();
+
+    expect(life.generationAsGrid()).toEqual(generation5);
   });
 });
