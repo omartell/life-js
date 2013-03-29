@@ -18,16 +18,12 @@ var Life = (function() {
   }
 
   Life.prototype.findNewCells = function(neighborsPerCell) {
-    var livingKeys = _.map(this.livingCells, function(){ return this.toString(); }, this),
-        dropLiving = _.omit(neighborsPerCell, livingKeys);
-
-    var newLiving = _.chain(dropLiving)
+    var newLiving = _.chain(neighborsPerCell)
       .map(function(numberOfNeighbors, cellPositionStr){
         if(numberOfNeighbors === 3){
           return new CellPosition(+cellPositionStr[0], +cellPositionStr[2]);
         }
       }).compact().value();
-
     return newLiving;
   };
 
@@ -51,28 +47,29 @@ var Life = (function() {
   };
 
   Life.prototype.nextGeneration = function() {
-    var neighborFinder = new NeighborFinder(this.seed),
-        neighborsPerCell = neighborFinder.neighborsPerCellPosition(this.livingCells),
-        survivors = this.findSurvivors(neighborsPerCell),
-        newLife   = this.findNewCells(neighborsPerCell);
+    var neighborsPerCell = new NeighborFinder().neighborsPerCellPosition(this.livingCells);
+    var survivors = this.findSurvivors(neighborsPerCell);
+    var allCells = survivors.concat(this.findNewCells(neighborsPerCell));
 
-    this.livingCells = survivors.concat(newLife);
+    this.livingCells = _.uniq(allCells, false, function(c){ return c.toString(); });
 
     return this.livingCells;
   };
 
   Life.prototype.generationAsGrid = function(){
-    var grid = emptyGrid(this.seed.length - 1);
+    var row_size = this.seed.length;
+    var column_size = this.seed[0].length;
+    var grid = emptyGrid(row_size, column_size);
     _.each(this.livingCells, function(cellPosition){
       grid[cellPosition.y][cellPosition.x] = ALIVE;
     });
     return grid;
   }
 
-  function emptyGrid(size){
-    var grid = new Array(size);
-    _.times(size + 1, function(n){
-      grid[n] = new Array(size);
+  function emptyGrid(row_size, column_size){
+    var grid = new Array(row_size);
+    _.times(row_size, function(n){
+      grid[n] = new Array(column_size);
     });
     return grid;
   }
@@ -81,8 +78,8 @@ var Life = (function() {
 })();
 
 var NeighborFinder = (function(){
-  function NeighborFinder(environment){
-    this.environment = environment;
+  function NeighborFinder(){
+
   }
 
   NeighborFinder.prototype.neighborsFor = function(cellPosition){
@@ -152,6 +149,23 @@ describe("Life", function() {
     var life = new Life(seed);
     expect(life.findLivingCells()).toEqual([{ x: 1, y: 2}]);
   });
+
+  it("Retuns a generation that is unique, cells are not duplicated", function(){
+    var seed = [
+      [_,_,_,_],
+      [_,1,_,_],
+      [_,1,1,_],
+      [_,1,_,_],
+      [_,_,_,_]
+    ];
+
+    var life = new Life(seed);
+    var nextGeneration = life.nextGeneration()
+    var expected = [{ x: 0, y: 2 }, { x: 2, y: 3 }, { x: 2, y: 1 },
+    { x: 1, y: 1 }, { x: 1, y: 2 }, { x: 1, y: 3 }, { x: 2, y: 2 } ];
+
+    expect(nextGeneration.length).toEqual(expected.length);
+  })
 })
 
 describe("Conway's game of life", function() {
