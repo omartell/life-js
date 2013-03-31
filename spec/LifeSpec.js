@@ -56,6 +56,23 @@ var Life = (function(){
     return this.livingCells;
   };
 
+  Life.prototype.start = function(timeBetweenGenerations){
+    var self = this;
+    var scheduleNextRun = function(){
+      var action = function(){
+        self.nextGeneration();
+        scheduleNextRun();
+      };
+      this.nextRun = setTimeout(action, timeBetweenGenerations);
+    }
+    this.nextGeneration();
+    scheduleNextRun();
+  }
+
+  Life.prototype.stop = function(){
+    clearTimeout(this.nextRun);
+  }
+
   Life.prototype.advanceGenerations = function(numberOfGenerations){
     _.times(numberOfGenerations, this.nextGeneration, this);
     return this.livingCells;
@@ -349,5 +366,32 @@ describe("Conway's game of life", function() {
     life.advanceGenerations(5);
 
     expect(life.generationAsGrid()).toEqual(generation5);
+  });
+
+  it("Is possible to define a period of time between generations", function(){
+    var seed = [
+      [_,1,_,_,_,_,_,_],
+      [_,1,_,_,_,_,1,_],
+      [_,1,1,_,_,_,1,_],
+      [_,1,_,_,_,1,1,_],
+      [_,_,_,_,_,_,_,_]
+    ];
+
+    var generationX = [
+      [_,_,_,_,_,_,_,_],
+      [_,_,_,_,_,_,1,_],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,1,_,1],
+      [_,_,_,_,_,_,1,_]
+    ];
+
+    var life = new Life(seed);
+    var timeBetweenGenerations = 1 * 1000;
+    life.start(timeBetweenGenerations);
+    waits(2*1000);
+    runs(function(){
+      life.stop();
+      expect(life.generationAsGrid()).toEqual(generationX);
+    });
   });
 });
